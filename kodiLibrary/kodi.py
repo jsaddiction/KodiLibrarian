@@ -21,15 +21,25 @@ class Kodi():
         except:
             return False
 
-    def notify(self, message, image=''):
+    def notify(self, message, title='', image=None):
+        baseURL = 'https://github.com/jsaddiction/SharedLibraryManager/raw/main/img/'
         if self.show_notifications:
-            if image == 'radarr':
-                imageURL = 'https://github.com/jsaddiction/SharedLibraryManager/raw/main/img/Radarr.png'
-            elif image == 'sonarr':
-                imageURL = 'https://github.com/jsaddiction/SharedLibraryManager/raw/main/img/Sonarr.png'
-            elif image == 'lidarr':
-                imageURL = 'https://github.com/jsaddiction/SharedLibraryManager/raw/main/img/Lidarr.png'
+            if image:
+                imageURL = '{}{}.png'.format(baseURL, image)
             else:
-                imageURL = 'https://github.com/jsaddiction/SharedLibraryManager/raw/main/img/LibraryManager.png'
+                imageURL = '{}librarymanager.png'.format(baseURL)
+            # if image == 'radarr':
+            #     imageURL = '{}Radarr.png'.format(baseURL)
+            # elif image == 'sonarr':
+            #     imageURL = 'https://github.com/jsaddiction/SharedLibraryManager/raw/main/img/Sonarr.png'
+            # elif image == 'lidarr':
+            #     imageURL = 'https://github.com/jsaddiction/SharedLibraryManager/raw/main/img/Lidarr.png'
+            # else:
+            #     imageURL = 'https://github.com/jsaddiction/SharedLibraryManager/raw/main/img/LibraryManager.png'
 
-            self._client.GUI.ShowNotification(title='Kodi Coupler', message=message, displaytime=5000, image=imageURL)  # pylint: disable=no-member
+            if not title:
+                notificationTitle = 'Shared Library Manager'
+            else:
+                notificationTitle = title
+
+            self._client.GUI.ShowNotification(title=notificationTitle, message=message, displaytime=5000, image=imageURL)  # pylint: disable=no-member

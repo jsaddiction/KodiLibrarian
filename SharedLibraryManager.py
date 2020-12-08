@@ -8,9 +8,9 @@ from kodiLibrary.libraryManager import LibraryManager
 
 config = Config()
 env = Env()
-kodi = LibraryManager(config.hosts)
+kodi = LibraryManager(config.hosts, config.synchronized, config.fallback_to_full_scan)
 
-kodi.notifyAll('Testing', 'radarr')
+kodi.notifyAll('Testing')
 
 
 
