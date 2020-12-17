@@ -12,6 +12,9 @@ settings.ini
 # log file
 LibraryManager.log
 
+# VSCode
+.vscode/
+
 # Distribution / packaging
 .Python
 build/
