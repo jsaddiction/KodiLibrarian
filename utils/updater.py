@@ -166,7 +166,7 @@ class Updater():
 
                 files = [a.split("|")[0][1:-1] for a in resp[2:-1]]
                 if self.log:
-                    self.log.debug("Files that were updated:" + "\n  ".join(files))
+                    self.log.debug("Files that were updated: " + "\n  ".join(files))
                 return (True, files)
 
             except git.GitCommandError as err:
