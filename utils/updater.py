@@ -2,10 +2,28 @@
 import git
 import os
 import inspect
+import time
+
+class Printer():
+
+    def __getTime(self):
+        return time.asctime(time.localtime())
+
+    def debug(self, msg):
+        print('{} - DEBUG - {}'.format(self.__getTime(), msg))
+
+    def warning(self, msg):
+        print('{} - WARNING - {}'.format(self.__getTime(), msg))
+
+    def info(self, msg):
+        print('{} - INFO - {}'.format(self.__getTime(), msg))
 
 class Updater():
     def __init__(self, log=None):
-        self.log = log
+        if log:
+            self.log = log
+        else:
+            self.log = Printer()
 
     def __get_calling_file(self):
         '''
@@ -22,12 +40,10 @@ class Updater():
         for i in range(1, len(stack)):
             if stack[i][1] != this_file:
                 complete_path = os.path.normpath(os.getcwd() + "/" + stack[i][1])
-                if self.log:
-                    self.log.debug("Module was called from: {}".format(complete_path))
+                self.log.debug("Module was called from: {}".format(complete_path))
                 return os.path.split(complete_path)
 
-        if self.log:
-            self.log.warning("Module was not called by an external script.")
+        self.log.warning("Module was not called by an external script.")
         raise LookupError("Module was not called by an external script.")
 
     def __get_file_diffs(self, repo):
@@ -39,14 +55,12 @@ class Updater():
         assert type(repo) is git.repo.base.Repo, "Passed in repo needs to be of type 'git.repo.base.Repo'"
         diff = str(repo.git.diff("--name-only")).splitlines()
         if len(diff) == 0:
-            if self.log:
-                self.log.debug("No diff found")
+            self.log.debug("No diff found")
         else:
             msg = "Found {} diffs in files:".format(len(diff))
             for conflict in diff:
                 msg += "\n  {}".format(conflict)
-            if self.log:
-                self.log.debug(msg)
+            self.log.debug(msg)
         return diff
 
     def __find_current_branch(self, repo):
@@ -60,11 +74,9 @@ class Updater():
         for branch in branches:
             # asterix represents current branch, search for it
             if branch[0] == "*":
-                if self.log:
-                    self.log.debug("Found current branch to be: {}".format(branch[2:]))
+                self.log.debug("Found current branch to be: {}".format(branch[2:]))
                 return branch[2:]
-        if self.log:
-            self.log.warning("Failed to find current branch")
+        self.log.warning("Failed to find current branch")
         raise  IOError("Failed to find current branch")
 
     def __is_dev_env(self, directory, suppress_errors=False):
@@ -95,17 +107,14 @@ class Updater():
                 with open(directory + "/.gitignore", 'r') as gitignore:
                     for line in gitignore.readlines():
                         if ".devenv" in line:
-                            if self.log:
-                                self.log.debug("Found valid development environment")
+                            self.log.debug("Found valid development environment")
                             return True
             #raise error here
-            if self.log:
-                self.log.warning("'.devenv' found but not included in '.gitignore'.")
+            self.log.warning("'.devenv' found but not included in '.gitignore'.")
             if not suppress_errors:
                 raise EnvironmentError("'.devenv' found but not included in '.gitignore'.")
         else:
-            if self.log:
-                self.log.debug("No '.devenv' file found in the root directory of the repo")
+            self.log.debug("No '.devenv' file found in the root directory of the repo")
 
         return False
 
@@ -121,14 +130,12 @@ class Updater():
         # walk up the file tree looking for a valid git repo, stop when we hit the base
         while True:
             if os.path.samefile(os.path.normpath(file_path), os.path.normpath("/")):
-                if self.log:
-                    self.log.warning("Calling script is not in a valid git repo")
+                self.log.warning("Calling script is not in a valid git repo")
                 raise LookupError("Calling script is not in a valid git repo")
 
             try:
                 git.Repo(file_path)
-                if self.log:
-                    self.log.debug("Found root of repo located at: {}".format(os.path.normpath(file_path)))
+                self.log.debug("Found root of repo located at: {}".format(os.path.normpath(file_path)))
                 return os.path.normpath(file_path)
             except git.InvalidGitRepositoryError:
                 file_path = os.path.normpath(file_path + "/..")
@@ -152,21 +159,18 @@ class Updater():
         it does not handle a git error correctly in which case it will be 
         raised again to be potentially handled higher up. 
         '''
-        if self.log:
-            self.log.info('Checking Git for updates.')
+        self.log.info('Checking Git for updates.')
         repo_path = self.__find_repo()
         repo = git.Repo(repo_path)
         if not force:
             try:
                 resp = str(repo.git.pull()).splitlines()
                 if resp[0] == "Already up-to-date.":
-                    if self.log:
-                        self.log.info("Repository is already up to date.")
+                    self.log.info("Repository is already up to date.")
                     return (False, [])
 
                 files = [a.split("|")[0][1:-1] for a in resp[2:-1]]
-                if self.log:
-                    self.log.debug("Files that were updated: " + "\n  ".join(files))
+                self.log.debug("Files that were updated: " + "\n  ".join(files))
                 return (True, files)
 
             except git.GitCommandError as err:
@@ -175,8 +179,7 @@ class Updater():
                 # this is a poor and rudamentary way to tell if there was a specific error TODO: fix
                 if err_list[3] == "  stderr: 'error: Your local changes to the following files would be overwritten by merge:":
                     files = [a[1:] for a in err_list[4:-2]]
-                    if self.log:
-                        self.log.warning("Pull failed. Files with conflicts:" + "\n  ".join(files))
+                    self.log.warning("Pull failed. Files with conflicts:" + "\n  ".join(files))
                     return (False, files)
                 # we got an error we didn't expect, pass it back up
                 raise
@@ -184,8 +187,7 @@ class Updater():
             return (True, [])
         else:
             if check_dev and self.__is_dev_env(repo_path):
-                if self.log:
-                    self.log.info("Detected development environment. Aborting hard pull")
+                self.log.info("Detected development environment. Aborting hard pull")
                 return (False, [])
             repo_path = self.__find_repo()
             repo = git.Repo(repo_path)
@@ -199,14 +201,11 @@ class Updater():
 
             # fetch all
             fetch_resp = str(repo.git.fetch("--all"))
-            if self.log:
-                self.log.debug("Fetched any and all changes with response: {}".format(fetch_resp))
+            self.log.debug("Fetched any and all changes with response: {}".format(fetch_resp))
             # reset
             reset_resp = str(repo.git.reset("--hard", "origin/{}".format(branch)))
-            if self.log:
-                self.log.info("Completed hard pull with response: {}".format(reset_resp))
+            self.log.info("Completed hard pull with response: {}".format(reset_resp))
             # clean
             clean_resp = str(repo.git.clean("-f"))
-            if self.log:
-                self.log.info("Completed clean with response: {}".format(clean_resp))
+            self.log.info("Completed clean with response: {}".format(clean_resp))
             return (True, diffs)
