@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 import os
-
-# os.environ.get('something')
-
 class Env():
     def __init__(self):
         # radarr environment variables
         self.radarrMovieFilePath = os.environ.get('RADARR_MOVIE_FILE_PATH')
-        self.radarrMovieDirectoryPath = os.environ.get('RADARR_MOVIE_PATH')
+        self.radarrMovieDirectory = os.environ.get('RADARR_MOVIE_PATH')
         self.radarrTitle = os.environ.get('RADARR_MOVIE_TITLE')
 
         # sonarr environment variables

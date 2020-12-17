@@ -1,1 +1,2 @@
 GitPython==3.1.11
+kodijsonrpc==1.1

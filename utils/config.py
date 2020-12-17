@@ -4,12 +4,11 @@ import os
 import sys
 import shutil
 from configparser import ConfigParser
-from utils import CONFIG_PATH
 
 class Config(object):
-    def __init__(self):
+    def __init__(self, configPath):
         self._raw_config = None
-        self.path = CONFIG_PATH
+        self.path = configPath
         self.parse()
 
     def parse(self):
@@ -46,39 +45,11 @@ class Config(object):
         return False
 
     @property
-    def synchronized(self):
-        if not self._raw_config is None:
-            if 'LIBRARY' in self._raw_config.sections():
-                return self._raw_config['LIBRARY'].getboolean('synchronized', False)
-        return False
-
-    @property
     def clean_after_update(self):
         if not self._raw_config is None:
             if 'LIBRARY' in self._raw_config.sections():
                 return self._raw_config['LIBRARY'].getboolean('clean_after_update', False)
         return False
-
-    @property
-    def fallback_to_full_scan(self):
-        if not self._raw_config is None:
-            if 'LIBRARY' in self._raw_config.sections():
-                return self._raw_config['LIBRARY'].getboolean('fallback_to_full_scan', False)
-        return False
-
-    @property
-    def single_scan_timeout(self):
-        if not self._raw_config is None:
-            if 'LIBRARY' in self._raw_config.sections():
-                return self._raw_config['LIBRARY'].getint('single_scan_timeout', 20)
-        return 20
-
-    @property
-    def full_scan_timeout(self):
-        if not self._raw_config is None:
-            if 'LIBRARY' in self._raw_config.sections():
-                return self._raw_config['LIBRARY'].getint('full_scan_timeout', 20)
-        return 20
 
     @property
     def hosts(self):
