@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-# import updates
-# updates.pull(verbose=True)
 import os
 
-from utils import config, logger, env
+from utils import config, logger, env, updater
 from kodiLibrary.libraryManager import KodiLibraryManager
 
-
+updater.pull()
 log = logger.get_log('SharedLibraryManager')
+
+
 kodi = KodiLibraryManager(config.hosts)
 
 if env.downloadedWith == 'radarr':
