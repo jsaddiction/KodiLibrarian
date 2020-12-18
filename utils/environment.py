@@ -33,7 +33,8 @@ class Env():
 
     @property
     def allKnown(self):
-        radarrVars = [{k:v} for k,v in os.environ.items() if k.beginswith('RADARR')]
-        sonarrVars = [{k:v} for k,v in os.environ.items() if k.beginswith('SONARR')]
-        lidarrVars = [{k:v} for k,v in os.environ.items() if k.beginswith('LIDARR')]
-        return radarrVars + sonarrVars + lidarrVars
+        radarrVars = {k:v for k, v in os.environ.items() if k.beginswith('RADARR')}
+        sonarrVars = {k:v for k, v in os.environ.items() if k.beginswith('SONARR')}
+        lidarrVars = {k:v for k, v in os.environ.items() if k.beginswith('LIDARR')}
+        # return radarrVars + sonarrVars + lidarrVars
+        return dict(**radarrVars, **sonarrVars, **lidarrVars)
