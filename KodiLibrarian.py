@@ -25,6 +25,7 @@ elif env.downloadedWith == 'lidarr':
     log.info('Lidarr not supported yet!! Aborting.')
 
 elif env.test:
+    print('Testing Connect')
     exit(0)
 
 else:

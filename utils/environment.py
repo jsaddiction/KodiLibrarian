@@ -24,6 +24,12 @@ class Env():
     def test(self):
         if os.environ.get('RADARR_EVENTTYPE', '') == 'Test':
             return True
+        elif os.environ.get('SONARR_EVENTTYPE', '') == 'Test':
+            return True
+        elif os.environ.get('LIDARR_EVENTTYPE', '') == 'Test':
+            return True
+        else:
+            return False
 
     @property
     def downloadedWith(self):
