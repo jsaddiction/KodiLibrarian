@@ -4,6 +4,8 @@ import os
 import inspect
 import time
 
+from git.exc import GitCommandError
+
 class Printer():
 
     def __getTime(self):
@@ -90,13 +92,13 @@ class Updater():
         an empty file in the root directory of the repo simply named
         '.devenv'. This file must also be included in the .gitignore
         or a EnvironmentError will be raised. This is to avoid the 
-        propogation of the development environment file to the main 
+        propagation of the development environment file to the main 
         repo and any other local repositories that would then pull 
         this file down and turn themselves into development 
         environments. This error can be suppressed by setting the 
         argument 'suppress_errors' to 'True' when calling is_dev_env().
         Suppressing this error can cause remote repos that rely on 
-        selfupdate to no longer update succesfully without direct
+        selfupdate to no longer update successfully without direct
         user input. You have been warned! 
         '''
         directory = os.path.normpath(directory)
@@ -151,10 +153,10 @@ class Updater():
         boolean value that indicates if the pull was successful or not. 
         The second field contains a list of the files that were effected
         by the pull. If the pull was successful, this is the files that 
-        were updated by the pull action. If the pull was unsuccesful, 
+        were updated by the pull action. If the pull was unsuccessful, 
         this list contains the files that have conflicts and stopped the
         pull. All files listed in the case of a success or failure are 
-        referanced relative to the base of the repository. This function 
+        referenced relative to the base of the repository. This function 
         attempts to capture git errors but it is entirely possible that 
         it does not handle a git error correctly in which case it will be 
         raised again to be potentially handled higher up. 
@@ -172,11 +174,10 @@ class Updater():
                 files = [a.split("|")[0][1:-1] for a in resp[2:-1]]
                 self.log.debug("Files that were updated: " + "\n  ".join(files))
                 return (True, files)
-
-            except git.GitCommandError as err:
+            except GitCommandError as err:
                 err_list = str(err).splitlines()
 
-                # this is a poor and rudamentary way to tell if there was a specific error TODO: fix
+                # this is a poor and rudimentary way to tell if there was a specific error TODO: fix
                 if err_list[3] == "  stderr: 'error: Your local changes to the following files would be overwritten by merge:":
                     files = [a[1:] for a in err_list[4:-2]]
                     self.log.warning("Pull failed. Files with conflicts:" + "\n  ".join(files))
