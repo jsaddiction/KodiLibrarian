@@ -25,4 +25,5 @@ elif env.downloadedWith == 'lidarr':
     log.info('Lidarr not supported yet!! Aborting.')
 
 else:
-    log.critical('Called from unknown application. Aborting.')
+    log.critical('Could not find any recognizable environment variables. Aborting.')
+    log.debug('ENVIRONMENT VARS: \n'.format(os.environ)
