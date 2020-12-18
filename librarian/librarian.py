@@ -33,7 +33,7 @@ class KodiHost(KodiJSONClient):
         return False
 
     def notify(self, msg, title='Kodi Library Manager'):
-        imageURL = 'https://github.com/jsaddiction/SharedLibraryManager/raw/main/img/'
+        imageURL = 'https://github.com/jsaddiction/KodiLibrarian/raw/main/img/'
         if title.lower() == 'sonarr':
             imageURL += 'Sonarr.png'
         elif title.lower() == 'radarr':
@@ -41,7 +41,7 @@ class KodiHost(KodiJSONClient):
         elif title.lower() == 'lidarr':
             imageURL += 'Lidarr.png'
         else:
-            imageURL += 'LibraryManager.png'
+            imageURL += 'KodiLibrarian.png'
 
         params = {
             'title': title,
@@ -52,9 +52,9 @@ class KodiHost(KodiJSONClient):
         self.GUI.ShowNotification(params)  # pylint: disable=no-member
 
 
-class KodiLibraryManager():
+class Librarian():
     TIMEOUT = 20
-    log = logger.get_log('LibraryManager')
+    log = logger.get_log('Librarian')
     def __init__(self, hostList):
         self.hosts = []
         for host in hostList:

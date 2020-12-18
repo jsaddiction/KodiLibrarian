@@ -72,7 +72,7 @@ class Updater():
         assert type(repo) is git.repo.base.Repo, "Passed in repo needs to be of type 'git.repo.base.Repo'"
         branches = str(repo.git.branch()).splitlines()
         for branch in branches:
-            # asterix represents current branch, search for it
+            # asterisk represents current branch, search for it
             if branch[0] == "*":
                 self.log.debug("Found current branch to be: {}".format(branch[2:]))
                 return branch[2:]

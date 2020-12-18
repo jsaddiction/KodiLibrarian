@@ -3,11 +3,11 @@
 import os
 
 from utils import config, logger, env, updater
-from kodiLibrary.libraryManager import KodiLibraryManager
+from librarian.librarian import Librarian
 
 updater.pull()
-log = logger.get_log('SharedLibraryManager')
-kodi = KodiLibraryManager(config.hosts)
+log = logger.get_log('KodiLibrarian')
+kodi = Librarian(config.hosts)
 
 if env.downloadedWith == 'radarr':
     log.info('Radarr has downloaded "{}" {}. Initiating update process.'.format(env.radarrTitle, env.radarrMovieFilePath))
