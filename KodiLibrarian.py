@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 
 from utils import config, logger, env, updater
 from librarian.librarian import Librarian
@@ -26,7 +27,7 @@ elif env.downloadedWith == 'lidarr':
 
 elif env.test:
     print('Testing Connect')
-    exit(0)
+    sys.exit(0)
 
 else:
     log.critical('Could not find any recognizable environment variables. Aborting.')
