@@ -2,7 +2,11 @@
 
 #### USER SETTINGS
 # installDirectory: can not be a root directory default: /config/scripts/KodiLibrarian
-installDirectory="/config/scripts/KodiLibrarian"
+# PUID is the id of the user who will be calling this script. Uncomment and set to appropriate values if KodiLibrarian files have wrong uid set
+# PGID same as PUID but for group
+installDirectory="/scripts/KodiLibrarian"
+# ${PUID}=1234
+# #{PGID}=1234
 
 ### Scripts variables
 parentDir="$(dirname ${installDirectory})"
@@ -36,6 +40,7 @@ fi
 
 ### Set permissions and install dependancies
 echo "********** Setting Permissions for KodiLibrarian **********"
+error=$(chown -R ${PUID}:${PGID} ${installDirectory} 2>&1) || { echo "Failed to set ownership on ${installDirectory}. ERROR: ${error}" ; }
 error=$(chmod -R ug+rwx ${installDirectory} 2>&1) || { echo "Failed to set permissions on ${installDirectory}. ERROR: ${error}" ; exit 1;}
 
 echo "********** Installing KodiLibrarian Dependencies **********"
