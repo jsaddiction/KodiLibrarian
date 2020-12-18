@@ -22,7 +22,7 @@ class Env():
 
     @property
     def test(self):
-        if os.environ.get('RADARR_EVENTTYPE', '') == 'test':
+        if os.environ.get('RADARR_EVENTTYPE', '') == 'Test':
             return True
 
     @property
