@@ -7,8 +7,6 @@ from kodiLibrary.libraryManager import KodiLibraryManager
 
 updater.pull()
 log = logger.get_log('SharedLibraryManager')
-
-
 kodi = KodiLibraryManager(config.hosts)
 
 if env.downloadedWith == 'radarr':
