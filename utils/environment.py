@@ -30,3 +30,10 @@ class Env():
             return 'lidarr'
         else:
             return None
+
+    @property
+    def allKnown(self):
+        radarrVars = [{k:v} for k,v in os.environ if k.beginswith('RADARR')]
+        sonarrVars = [{k:v} for k,v in os.environ if k.beginswith('SONARR')]
+        lidarrVars = [{k:v} for k,v in os.environ if k.beginswith('LIDARR')]
+        return radarrVars + sonarrVars + lidarrVars

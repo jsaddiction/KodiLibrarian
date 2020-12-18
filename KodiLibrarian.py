@@ -26,4 +26,4 @@ elif env.downloadedWith == 'lidarr':
 
 else:
     log.critical('Could not find any recognizable environment variables. Aborting.')
-    log.debug('ENVIRONMENT VARS: \n{}'.format(os.environ))
+    log.debug('ENVIRONMENT VARS: \n{}'.format(env.allKnown))
