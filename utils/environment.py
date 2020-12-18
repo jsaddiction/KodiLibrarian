@@ -1,43 +1,50 @@
 #!/usr/bin/env python3
 import os
 class Env():
+
+    ENV_LABELS = ['radarr', 'sonarr', 'lidarr']
+
     def __init__(self):
+        self.radarrVars = {k.lower():v for k, v in os.environ.items() if 'radarr' in k.lower()}
+        self.sonarrVars = {k.lower():v for k, v in os.environ.items() if 'radarr' in k.lower()}
+        self.lidarrVars = {k.lower():v for k, v in os.environ.items() if 'lidarr' in k.lower()}
+
         # radarr environment variables
-        self.radarrMovieFilePath = os.environ.get('RADARR_MOVIE_FILE_PATH')
-        self.radarrMovieDirectory = os.environ.get('RADARR_MOVIE_PATH')
-        self.radarrTitle = os.environ.get('RADARR_MOVIE_TITLE')
+        self.radarrMovieFilePath = self.radarrVars.get('radarr_movie_file_path')
+        self.radarrMovieDirectory = self.radarrVars.get('radarr_movie_path')
+        self.radarrTitle = self.radarrVars.get('radarr_movie_title')
 
         # sonarr environment variables
-        self.sonarrSeriesTitle = os.environ.get('SONARR_SERIES_TITLE')
-        self.sonarrSeriesPath = os.environ.get('SONARR_SERIES_PATH')
-        self.sonarrEpisodeSeasonNumber = os.environ.get('SONARR_EPISODEFILE_SEASONNUMBER')
-        self.sonarrEpisodeCount = int(os.environ.get('SONARR_RELEASE_EPISODECOUNT', 0))
+        self.sonarrSeriesTitle = self.sonarrVars.get('sonarr_series_title')
+        self.sonarrSeriesPath = self.sonarrVars.get('sonarr_series_path')
+        self.sonarrEpisodeSeasonNumber = self.sonarrVars.get('sonarr_episodefile_seasonnumber')
+        self.sonarrEpisodeCount = int(self.sonarrVars.get('sonarr_release_episodecount', 0))
         if self.sonarrEpisodeCount > 1:
-            self.sonarrEpisodeNumber = os.environ.get('SONARR_RELEASE_EPISODENUMBERS', '').replace(',', '').replace(' ', '')
+            self.sonarrEpisodeNumber = self.sonarrVars.get('sonarr_release_episodenumbers', '').replace(',', '').replace(' ', '')
         elif self.sonarrEpisodeCount == 1:
-            self.sonarrEpisodeNumber = os.environ.get('SONARR_RELEASE_EPISODENUMBERS', '').split(',')[0]
-        self.sonarrEpisoedFilePath = os.environ.get('SONARR_EPISODEFILE_PATH')
+            self.sonarrEpisodeNumber = self.sonarrVars.get('sonarr_release_episodenumbers', '').split(',')[0]
+        self.sonarrEpisoedFilePath = self.sonarrVars.get('sonarr_episodefile_path')
 
         # lidarr environment variables TODO
 
     @property
     def test(self):
-        if os.environ.get('RADARR_EVENTTYPE', '').lower() == 'test':
+        if self.radarrVars.get('radarr_eventtype', '').lower() == 'test':
             return True
-        elif os.environ.get('SONARR_EVENTTYPE', '').lower() == 'test':
+        elif self.sonarrVars.get('sonarr_eventtype', '').lower() == 'test':
             return True
-        elif os.environ.get('LIDARR_EVENTTYPE', '').lower() == 'test':
+        elif self.lidarrVars.get('lidarr_eventtype', '').lower() == 'test':
             return True
         else:
             return False
 
     @property
     def downloadedWith(self):
-        if os.environ.get('RADARR_EVENTTYPE', '') == 'download':
+        if self.radarrVars.get('radarr_eventtype', '') == 'download':
             return 'radarr'
-        elif os.environ.get('SONARR_EVENTTYPE', '') == 'download':
+        elif os.environ.get('sonarr_eventtype', '') == 'download':
             return 'sonarr'
-        elif os.environ.get('LIDARR_EVENTTYPE', '') == 'download':
+        elif os.environ.get('lidarr_eventtype', '') == 'download':
             return 'lidarr'
         else:
             return None
