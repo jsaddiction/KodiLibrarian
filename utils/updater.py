@@ -3,6 +3,7 @@ import git
 import os
 import inspect
 import time
+import shutil
 
 from git.exc import GitCommandError
 
@@ -142,6 +143,23 @@ class Updater():
             except git.InvalidGitRepositoryError:
                 file_path = os.path.normpath(file_path + "/..")
 
+    def __clean_pycache(self, rootDir):
+        '''
+        This function will remove all '__pycache__' directories.
+        IOError is raised if unable
+        '''
+        self.log.info('Cleaning pycache directories')
+        for root, dirs, _ in os.walk(os.path.abspath(rootDir)):
+            for directory in dirs:
+                if directory == '__pycache__':
+                    path = os.path.join(root, directory)
+                    if os.path.isdir(path):
+                        self.log.debug('Removing: "{}"'.format(path))
+                        try:
+                            shutil.rmtree(path)
+                        except IOError as e:
+                            self.log.warning('Could not remove "{}" ERROR: {}'.format(path, e))
+
     def pull(self, force=False, check_dev=True):
         '''
         This function will attempt to pull any remote changes down to 
@@ -172,6 +190,7 @@ class Updater():
                     return (False, [])
 
                 files = [a.split("|")[0][1:-1] for a in resp[2:-1]]
+                self.__clean_pycache(repo_path)
                 self.log.debug("Files that were updated: " + "\n  ".join(files))
                 return (True, files)
             except GitCommandError as err:
@@ -209,4 +228,5 @@ class Updater():
             # clean
             clean_resp = str(repo.git.clean("-f"))
             self.log.info("Completed clean with response: {}".format(clean_resp))
+            self.__clean_pycache(repo_path)
             return (True, diffs)
