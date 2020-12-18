@@ -24,6 +24,9 @@ elif env.downloadedWith == 'sonarr':
 elif env.downloadedWith == 'lidarr':
     log.info('Lidarr not supported yet!! Aborting.')
 
+elif env.test:
+    exit(0)
+
 else:
     log.critical('Could not find any recognizable environment variables. Aborting.')
     log.debug('ENVIRONMENT VARS:')

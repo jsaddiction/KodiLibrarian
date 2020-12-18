@@ -21,6 +21,11 @@ class Env():
         # lidarr environment variables TODO
 
     @property
+    def test(self):
+        if os.environ.get('RADARR_EVENTTYPE', '') == 'test':
+            return True
+
+    @property
     def downloadedWith(self):
         if os.environ.get('RADARR_EVENTTYPE', '') == 'download':
             return 'radarr'
