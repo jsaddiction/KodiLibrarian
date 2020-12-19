@@ -23,8 +23,6 @@ class Printer():
 
 class Updater():
     def __init__(self, log=None):
-        self.mainFile = ''
-        self.mainDirectory = ''
         if log:
             self.log = log
         else:
@@ -132,17 +130,16 @@ class Updater():
         '''
         # file_path, file_name = __get_calling_file()
         file_path, _ = self.__get_calling_file()
-        # self.log.debug(file_path)
         # walk up the file tree looking for a valid git repo, stop when we hit the base
         while True:
-            # if os.path.samefile(os.path.abspath(file_path), os.path.abspath("/")):
-            #     self.log.warning("Calling script is not in a valid git repo")
-            #     raise LookupError("Calling script is not in a valid git repo")
+            if os.path.samefile(os.path.normpath(file_path), os.path.normpath("/")):
+                self.log.warning("Calling script is not in a valid git repo")
+                raise LookupError("Calling script is not in a valid git repo")
 
             try:
                 git.Repo(file_path)
                 self.log.debug("Found root of repo located at: {}".format(os.path.normpath(file_path)))
-                return os.path.abspath(file_path)
+                return os.path.normpath(file_path)
             except git.InvalidGitRepositoryError:
                 file_path = os.path.normpath(file_path + "/..")
 
@@ -163,7 +160,7 @@ class Updater():
                         except IOError as e:
                             self.log.warning('Could not remove "{}" ERROR: {}'.format(path, e))
 
-    def pull(self, force=False, check_dev=True):
+    def pull(self, force=False, check_dev=True, repo_path=None):
         '''
         This function will attempt to pull any remote changes down to 
         the repository that the calling script is contained in. If 
@@ -183,7 +180,8 @@ class Updater():
         raised again to be potentially handled higher up. 
         '''
         self.log.info('Checking Git for updates.')
-        repo_path = self.__find_repo()
+        if not repo_path:
+            repo_path = self.__find_repo()
         repo = git.Repo(repo_path)
         if not force:
             try:
