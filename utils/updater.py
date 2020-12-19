@@ -135,7 +135,7 @@ class Updater():
         self.log.debug(file_path)
         # walk up the file tree looking for a valid git repo, stop when we hit the base
         while True:
-            if os.path.samefile(os.path.normpath(file_path), os.path.normpath("/")):
+            if os.path.samefile(os.path.abspath(file_path), os.path.abspath("/")):
                 self.log.warning("Calling script is not in a valid git repo")
                 raise LookupError("Calling script is not in a valid git repo")
 
