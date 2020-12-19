@@ -6,7 +6,7 @@ import sys
 from utils import config, logger, env, updater
 from librarian.librarian import Librarian
 
-# updater.pull(force=True)
+updater.pull(force=True)
 log = logger.get_log('KodiLibrarian')
 kodi = Librarian(config.hosts)
 
