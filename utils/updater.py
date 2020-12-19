@@ -7,6 +7,8 @@ import shutil
 
 from git.exc import GitCommandError
 
+APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 class Printer():
 
     def __getTime(self):
@@ -128,20 +130,23 @@ class Updater():
         location of the base of the git repo. If the script is not, a 
         LookupError is raised to indicate it could not find the repo
         '''
-        # file_path, file_name = __get_calling_file()
-        file_path, _ = self.__get_calling_file()
-        # walk up the file tree looking for a valid git repo, stop when we hit the base
-        while True:
-            if os.path.samefile(os.path.normpath(file_path), os.path.normpath("/")):
-                self.log.warning("Calling script is not in a valid git repo")
-                raise LookupError("Calling script is not in a valid git repo")
+        if os.path.exists(os.path.join(APP_ROOT, u'.git')):
+            self.log.debug('APP_ROOT is git repo: {}'.format(APP_ROOT))
+            return APP_ROOT
+        # # file_path, file_name = __get_calling_file()
+        # file_path, _ = self.__get_calling_file()
+        # # walk up the file tree looking for a valid git repo, stop when we hit the base
+        # while True:
+        #     if os.path.samefile(os.path.normpath(file_path), os.path.normpath("/")):
+        #         self.log.warning("Calling script is not in a valid git repo")
+        #         raise LookupError("Calling script is not in a valid git repo")
 
-            try:
-                git.Repo(file_path)
-                self.log.debug("Found root of repo located at: {}".format(os.path.normpath(file_path)))
-                return os.path.normpath(file_path)
-            except git.InvalidGitRepositoryError:
-                file_path = os.path.normpath(file_path + "/..")
+        #     try:
+        #         git.Repo(file_path)
+        #         self.log.debug("Found root of repo located at: {}".format(os.path.normpath(file_path)))
+        #         return os.path.normpath(file_path)
+        #     except git.InvalidGitRepositoryError:
+        #         file_path = os.path.normpath(file_path + "/..")
 
     def __clean_pycache(self, rootDir):
         '''
@@ -160,7 +165,16 @@ class Updater():
                         except IOError as e:
                             self.log.warning('Could not remove "{}" ERROR: {}'.format(path, e))
 
-    def pull(self, force=False, check_dev=True, repo_path=None):
+    def __get_repo(self):
+        repo = git.Repo(APP_ROOT)
+        try:
+            assert not repo.bare
+        except AssertionError:
+            self.log.critical('This is not a valid git repository. Unable to auto update.')
+            return None
+        return repo
+
+    def pull(self, force=False, check_dev=True):
         '''
         This function will attempt to pull any remote changes down to 
         the repository that the calling script is contained in. If 
@@ -180,9 +194,7 @@ class Updater():
         raised again to be potentially handled higher up. 
         '''
         self.log.info('Checking Git for updates.')
-        if not repo_path:
-            repo_path = self.__find_repo()
-        repo = git.Repo(repo_path)
+        repo = self.__get_repo()
         if not force:
             try:
                 resp = str(repo.git.pull()).splitlines()
@@ -191,7 +203,7 @@ class Updater():
                     return (False, [])
 
                 files = [a.split("|")[0][1:-1] for a in resp[2:-1]]
-                self.__clean_pycache(repo_path)
+                self.__clean_pycache(APP_ROOT)
                 self.log.debug("Files that were updated: " + "\n  ".join(files))
                 return (True, files)
             except GitCommandError as err:
@@ -207,12 +219,9 @@ class Updater():
 
             return (True, [])
         else:
-            if check_dev and self.__is_dev_env(repo_path):
+            if check_dev and self.__is_dev_env(APP_ROOT):
                 self.log.info("Detected development environment. Aborting hard pull")
                 return (False, [])
-            if not repo_path:
-                repo_path = self.__find_repo()
-            repo = git.Repo(repo_path)
             branch = self.__find_current_branch(repo)
 
             # record the diff, these will all replaced
@@ -230,5 +239,5 @@ class Updater():
             # clean
             clean_resp = str(repo.git.clean("-f"))
             self.log.info("Completed clean with response: {}".format(clean_resp))
-            self.__clean_pycache(repo_path)
+            self.__clean_pycache(APP_ROOT)
             return (True, diffs)
