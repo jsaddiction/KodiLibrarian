@@ -13,7 +13,7 @@ class Env():
 
     @property
     def calledBy(self):
-        for k, _ in self._vars:
+        for k, _ in self._vars.items():
             if 'radarr' in k:
                 return 'radarr'
             elif 'sonarr' in k:
