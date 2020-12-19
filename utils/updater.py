@@ -210,7 +210,8 @@ class Updater():
             if check_dev and self.__is_dev_env(repo_path):
                 self.log.info("Detected development environment. Aborting hard pull")
                 return (False, [])
-            repo_path = self.__find_repo()
+            if not repo_path:
+                repo_path = self.__find_repo()
             repo = git.Repo(repo_path)
             branch = self.__find_current_branch(repo)
 
