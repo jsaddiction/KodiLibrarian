@@ -7,7 +7,7 @@ class Env():
     def __init__(self):
 
         # radarr environment variables
-        self.radarrMovieFilePath = self._getVar('radarr_movie_file_path')
+        self.radarrMovieFilePath = self._getVar('radarr_moviefile_path')
         self.radarrMovieDirectory = self._getVar('radarr_movie_path')
         self.radarrTitle = self._getVar('radarr_movie_title')
 

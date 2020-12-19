@@ -404,7 +404,8 @@ class Librarian():
 
     def _scanNewMovie(self, title, movieDirectory, moviePath):
         self.log.debug('Initiating directory scan for new movie. directory: "{}"'.format(movieDirectory))
-
+        if not movieDirectory.endswith('/'):
+            movieDirectory += '/'
         for host in self.hosts:
             try:
                 response = host.VideoLibrary.Scan(directory=movieDirectory)
