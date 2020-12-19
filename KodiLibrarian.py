@@ -10,7 +10,7 @@ updater.pull(force=True, repo_path='/scripts/KodiLibrarian')
 log = logger.get_log('KodiLibrarian')
 kodi = Librarian(config.hosts)
 
-log.debug(env.allKnown)
+log.debug('Environment Vars: {}'.format(env.allKnown))
 
 if env.event == 'download':
     if env.calledBy == 'radarr':
