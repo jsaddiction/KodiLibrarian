@@ -6,7 +6,7 @@ import sys
 from utils import config, logger, env, updater
 from librarian.librarian import Librarian
 
-updater.pull(force=True, repo_path='/scripts/KodiLibrarian')
+# updater.pull(force=True, repo_path='/scripts/KodiLibrarian')
 log = logger.get_log('KodiLibrarian')
 kodi = Librarian(config.hosts)
 
@@ -28,7 +28,7 @@ if env.event == 'download':
     elif env.calledBy == 'lidarr':
         log.info('Lidarr not supported yet!! Aborting.')
 
-elif env.test:
+elif env.event == 'test':
     log.debug('Called with test environment')
     sys.exit(0)
 

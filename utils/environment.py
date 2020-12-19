@@ -25,15 +25,11 @@ class Env():
 
     @property
     def event(self):
-        return self._vars.get('{}_eventtype'.format(self.calledBy), None)
-
-    @property
-    def test(self):
-        event = self.event
+        event = self._vars.get('{}_eventtype'.format(self.calledBy), None)
         if event:
-            return self.event.lower() == 'test'
+            return event.lower()
         else:
-            return None
+            return None 
 
     @property
     def episodePath(self):
