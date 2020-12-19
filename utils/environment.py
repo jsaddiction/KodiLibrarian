@@ -5,65 +5,100 @@ class Env():
     ENV_LABELS = ['radarr', 'sonarr', 'lidarr']
 
     def __init__(self):
-
-        # radarr environment variables
-        self.radarrMovieFilePath = self._getVar('radarr_moviefile_path')
-        self.radarrMovieDirectory = self._getVar('radarr_movie_path')
-        self.radarrTitle = self._getVar('radarr_movie_title')
-
-        # sonarr environment variables
-        self.sonarrSeriesTitle = self._getVar('sonarr_series_title')
-        self.sonarrSeriesPath = self._getVar('sonarr_series_path')
-        self.sonarrEpisodeSeasonNumber = self._getVar('sonarr_episodefile_seasonnumber')
-        self.sonarrEpisodeCount = self._getNum('sonarr_release_episodecount')
-        if self.sonarrEpisodeCount > 1:
-            self.sonarrEpisodeNumber = self._getVar('sonarr_release_episodenumbers').replace(',', '').replace(' ', '')
-        elif self.sonarrEpisodeCount == 1:
-            self.sonarrEpisodeNumber = self._getVar('sonarr_release_episodenumbers').split(',')[0]
-        self.sonarrEpisoedFilePath = self._getVar('sonarr_episodefile_path')
-
-        # lidarr environment variables TODO
-
-    def _getVar(self, variableName):
-        for k, v in os.environ.items():
-            if k.lower() == variableName.lower():
-                return v
-
-        return ''
-
-    def _getNum(self, variableName):
-        try:
-            return int(self._getVar(variableName))
-        except:
-            return 0
-
-    @property
-    def test(self):
-        if self._getVar('radarr_eventtype').lower() == 'test':
-            return True
-        elif self._getVar('sonarr_eventtype').lower() == 'test':
-            return True
-        elif self._getVar('lidarr_eventtype').lower() == 'test':
-            return True
-        else:
-            return False
-
-    @property
-    def downloadedWith(self):
-        if self._getVar('radarr_eventtype').lower() == 'download':
-            return 'radarr'
-        elif self._getVar('sonarr_eventtype').lower() == 'download':
-            return 'sonarr'
-        elif self._getVar('lidarr_eventtype').lower() == 'download':
-            return 'lidarr'
-        else:
-            return None
+        self._vars = {k.lower():v for (k, v) in os.environ.items() if 'radarr' in k.lower() or 'sonarr' in k.lower() or 'lidarr' in k.lower()}
 
     @property
     def allKnown(self):
-        # radarrVars = {k:v for k, v in os.environ.items() if k.startswith('RADARR')}
-        # sonarrVars = {k:v for k, v in os.environ.items() if k.startswith('SONARR')}
-        # lidarrVars = {k:v for k, v in os.environ.items() if k.startswith('LIDARR')}
-        # # return radarrVars + sonarrVars + lidarrVars
-        # return dict(**radarrVars, **sonarrVars, **lidarrVars)
-        return dict(os.environ.items())
+        return self._vars
+
+    @property
+    def calledBy(self):
+        for k, _ in self._vars:
+            if 'radarr' in k:
+                return 'radarr'
+            elif 'sonarr' in k:
+                return 'sonarr'
+            elif 'lidarr' in k:
+                return 'lidarr'
+            else:
+                return None
+
+    @property
+    def event(self):
+        return self._vars.get('{}_eventtype'.format(self.calledBy), None)
+
+    @property
+    def test(self):
+        return self.event.lower() == 'test'
+
+    @property
+    def episodePath(self):
+        episodePathKeys = ['sonarr_episodefile_path']
+        for k, v in self._vars.items():
+            if k in episodePathKeys:
+                return v
+        return None
+
+    @property
+    def episodeNumber(self):
+        episodeNumberKeys = ['sonarr_release_episodenumbers']
+        for k, v in self._vars.items():
+            if k in episodeNumberKeys:
+                return v.split(',')[0]
+        return None
+
+    @property
+    def episodeCount(self):
+        episodeCountKeys = ['sonarr_release_episodecount']
+        for k, v in self._vars.items():
+            if k in episodeCountKeys:
+                return int(v)
+        return None
+
+    @property
+    def seasonNumber(self):
+        seasonNumberKeys = ['sonarr_episodefile_seasonnumber']
+        for k, v in self._vars.items():
+            if k in seasonNumberKeys:
+                return v
+        return None
+
+    @property
+    def showDirectory(self):
+        showDirectoryKeys = ['sonarr_series_path']
+        for k, v in self._vars.items():
+            if k in showDirectoryKeys:
+                return v
+        return None
+
+    @property
+    def showTitle(self):
+        showTitleKeys = ['sonarr_series_title']
+        for k, v in self._vars.items():
+            if k in showTitleKeys:
+                return v
+        return None
+
+    @property
+    def moviePath(self):
+        moviePathKeys = ['radarr_moviefile_path']
+        for k, v in self._vars.items():
+            if k in moviePathKeys:
+                return v
+        return None
+
+    @property
+    def movieDirectory(self):
+        movieDirectoryKeys = ['radarr_movie_path']
+        for k, v in self._vars.items():
+            if k in movieDirectoryKeys:
+                return v
+        return None
+
+    @property
+    def movieTitle(self):
+        movieTitleKeys = ['radarr_movie_title']
+        for k, v in self._vars.items():
+            if k in movieTitleKeys:
+                return v
+        return None
