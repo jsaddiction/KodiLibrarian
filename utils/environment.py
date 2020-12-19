@@ -29,7 +29,11 @@ class Env():
 
     @property
     def test(self):
-        return self.event.lower() == 'test'
+        event = self.event
+        if event:
+            return self.event.lower() == 'test'
+        else:
+            return None
 
     @property
     def episodePath(self):
