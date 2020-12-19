@@ -23,6 +23,8 @@ class Printer():
 
 class Updater():
     def __init__(self, log=None):
+        self.mainFile = ''
+        self.mainDirectory = ''
         if log:
             self.log = log
         else:
@@ -130,6 +132,7 @@ class Updater():
         '''
         # file_path, file_name = __get_calling_file()
         file_path, _ = self.__get_calling_file()
+        self.log.debug(file_path)
         # walk up the file tree looking for a valid git repo, stop when we hit the base
         while True:
             if os.path.samefile(os.path.normpath(file_path), os.path.normpath("/")):
