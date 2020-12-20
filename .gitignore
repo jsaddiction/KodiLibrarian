@@ -14,6 +14,7 @@ KodiLibrarian.log
 
 # VSCode
 .vscode/
+.devenv
 
 # Distribution / packaging
 .Python
