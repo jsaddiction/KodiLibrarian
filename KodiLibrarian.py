@@ -29,7 +29,7 @@ if env.event == 'download':
         log.info('Lidarr not supported yet!! Aborting.')
 
 elif env.event == 'test':
-    log.debug('Called with test environment')
+    log.debug('Called with test environment from {}'.format(env.calledBy))
     sys.exit(0)
 
 else:
