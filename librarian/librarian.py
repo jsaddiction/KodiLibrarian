@@ -271,6 +271,7 @@ class Librarian():
                 t += 1
                 episodeID = self._getEpisodeID(showID, episodePath)
                 if episodeID:
+                    host.scanned = True
                     self.log.debug('Scan complete. EpisodeID: {} Took {}s'.format(episodeID, t/10))
                     return episodeID
             self.log.warning('Host: {} Timed out after {}s while scanning show directory. Trying next host.'.format(host.name, t/10))
@@ -295,6 +296,7 @@ class Librarian():
                 t += 1
                 episodeID = self._getEpisodeID(self._getTVShowID(showDirectory), episodePath)
                 if episodeID:
+                    host.scanned = True
                     self.log.debug('Scan complete. EpisodeID: {} Took {}s'.format(episodeID, t))
                     return episodeID
             self.log.warning('Host: {} Timed out after {}s while scanning entire library. Trying next host.'.format(host.name, t/10))
