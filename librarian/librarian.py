@@ -218,7 +218,7 @@ class Librarian():
             time.sleep(0.1)
             t += 1
             newWatchedState = self._getEpisodeWatchedState(watchedState['episodeid'])
-            if not oldWatchedState == newWatchedState:
+            if newWatchedState and not newWatchedState == oldWatchedState:
                 self.log.debug('Setting watched state complete. Took {}s'.format(t/10))
                 return
         self.log.warning('Host: {} Timed out after {}s while setting episode watched state. Trying next host.'.format(host.name, t/10))
@@ -484,7 +484,7 @@ class Librarian():
             time.sleep(0.1)
             t += 1
             newWatchedState = self._getMovieWatchedState(watchedState['movieid'])
-            if not oldWatchedState == newWatchedState:
+            if newWatchedState and not oldWatchedState == newWatchedState:
                 self.log.debug('Setting watched state complete. Took {}s'.format(t/10))
                 return
         self.log.warning('Host: {} Timed out after {}s while setting movie watched state.'.format(host.name, t/10))
