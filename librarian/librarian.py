@@ -227,7 +227,6 @@ class Librarian():
         # Refresh given episode and return updated episodeID
         self.log.debug('Refreshing episodeID: {}'.format(episodeID))
         episodeDetails = self._getEpisodeDetails(episodeID)
-        self.log.critical('FIX ME: Call to refreshEpisode episodeDetails: {}'.format(episodeDetails))
         params = {
             'episodeid': episodeID
         }
@@ -246,8 +245,7 @@ class Librarian():
                 time.sleep(0.1)
                 t += 1
                 newEpisodeID = self._getEpisodeID(episodeDetails['tvshowid'], episodeDetails['file'])
-                self.log.critical('FIX ME: newEpisodeID: {}'.format(newEpisodeID))
-                if not episodeID == newEpisodeID:
+                if newEpisodeID and not newEpisodeID == episodeID:
                     self.log.debug('Refresh complete. New episodeID: {} Took {}s'.format(newEpisodeID, t/10))
                     host.scanned = True
                     return newEpisodeID
