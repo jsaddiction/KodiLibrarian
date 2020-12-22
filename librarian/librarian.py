@@ -18,10 +18,7 @@ class KodiHost(KodiJSONClient):
     def isAlive(self):
         try:
             return self.JSONRPC.Ping() == 'pong' # pylint: disable=no-member
-        except (ReceivedErrorResponse, ReceivedNoResponse):
-            return False
-        except Exception as e:
-            print('Failed to connect to {}. ERROR: {}'.format(self.name, e))
+        except Exception:
             return False
 
     @property
@@ -72,6 +69,8 @@ class Librarian():
             )
             if client.isAlive:
                 self.hosts.append(client)
+            else:
+                self.log.warning('Failed to establish connection with {}.'.format(client.name))
 
     def _modifyWatchedState(self, watchedState):
         # Create modified watched state
