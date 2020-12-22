@@ -18,7 +18,10 @@ class KodiHost(KodiJSONClient):
     def isAlive(self):
         try:
             return self.JSONRPC.Ping() == 'pong' # pylint: disable=no-member
-        except (ReceivedErrorResponse, ReceivedNoResponse, OSError):
+        except (ReceivedErrorResponse, ReceivedNoResponse):
+            return False
+        except Exception as e:
+            print('Failed to connect to {}. ERROR: {}'.format(self.name, e))
             return False
 
     @property
