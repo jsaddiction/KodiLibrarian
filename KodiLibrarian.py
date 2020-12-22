@@ -10,8 +10,6 @@ updater.pull()
 log = logger.get_log('KodiLibrarian')
 kodi = Librarian(config.hosts)
 
-log.debug('Environment Vars: {}'.format(env.allKnown))
-
 if env.event == 'download':
     if env.calledBy == 'radarr':
         log.info('Radarr has downloaded "{}" {}. Initiating update process.'.format(env.movieTitle, env.moviePath))
