@@ -204,7 +204,7 @@ class Updater():
 
                 files = [a.split("|")[0][1:-1] for a in resp[2:-1]]
                 self.__clean_pycache(APP_ROOT)
-                self.log.debug("Files that were updated: " + "\n  ".join(files))
+                self.log.debug("Files updated: " + "\n  ".join(files))
                 return (True, files)
             except GitCommandError as err:
                 err_list = str(err).splitlines()
@@ -216,7 +216,7 @@ class Updater():
                     return (False, files)
                 # we got an error we didn't expect, pass it back up
                 raise
-
+            self.log.info('Running the latest commit!')
             return (True, [])
         else:
             if check_dev and self.__is_dev_env(APP_ROOT):
