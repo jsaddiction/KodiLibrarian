@@ -52,6 +52,13 @@ class Config(object):
         return False
 
     @property
+    def update_while_playing(self):
+        if not self._raw_config is None:
+            if 'LIBRARY' in self._raw_config.sections():
+                return self._raw_config['LIBRARY'].getboolean('update_while_playing', False)
+        return False
+
+    @property
     def hosts(self):
         hosts = []
         for section in self._raw_config:

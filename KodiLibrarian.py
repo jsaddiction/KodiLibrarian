@@ -8,7 +8,7 @@ from librarian.librarian import Librarian
 
 updater.pull()
 log = logger.get_log('KodiLibrarian')
-kodi = Librarian(config.hosts)
+kodi = Librarian(config.hosts, update_while_playing=config.update_while_playing)
 
 if env.event == 'download':
     if env.calledBy == 'radarr':

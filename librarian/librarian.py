@@ -55,8 +55,9 @@ class KodiHost(KodiJSONClient):
 class Librarian():
     TIMEOUT = 20
     log = logger.get_log('Librarian')
-    def __init__(self, hostList):
+    def __init__(self, hostList, update_while_playing=False):
         self.hosts = []
+        self.update_while_playing = update_while_playing
         for host in hostList:
             client = KodiHost(
             name=host['name'],
@@ -99,8 +100,6 @@ class Librarian():
                 continue
 
             return
-
-
 
     ########################  TV Show methods  #######################
 
@@ -233,6 +232,9 @@ class Librarian():
             'episodeid': episodeID
         }
         for host in self.hosts:
+            if not self.update_while_playing and host.inUse:
+                self.log.info('{} is currently playing a video. Skipping update.'.format(host.name))
+                continue
             try:
                 response = host.VideoLibrary.RefreshEpisode(params) # pylint: disable=no-member
             except (ReceivedErrorResponse, ReceivedNoResponse):
@@ -258,6 +260,9 @@ class Librarian():
         self.log.debug('Scanning new episode {}'.format(episodePath))
         showID = self._getTVShowID(showDirectory)
         for host in self.hosts:
+            if not self.update_while_playing and host.inUse:
+                self.log.info('{} is currently playing a video. Skipping update.'.format(host.name))
+                continue
             try:
                 response = host.VideoLibrary.Scan(directory=showDirectory) # pylint: disable=no-member
             except (ReceivedErrorResponse, ReceivedNoResponse):
@@ -283,6 +288,9 @@ class Librarian():
         self.log.debug('Scanning new Tv Show {}. This may take a while.'.format(showDirectory))
 
         for host in self.hosts:
+            if not self.update_while_playing and host.inUse:
+                self.log.info('{} is currently playing a video. Skipping update.'.format(host.name))
+                continue
             try:
                 response = host.VideoLibrary.Scan() # pylint: disable=no-member
             except (ReceivedErrorResponse, ReceivedNoResponse):
@@ -386,6 +394,9 @@ class Librarian():
         }
 
         for host in self.hosts:
+            if not self.update_while_playing and host.inUse:
+                self.log.info('{} is currently playing a video. Skipping update.'.format(host.name))
+                continue
             try:
                 response = host.VideoLibrary.RefreshMovie(params) # pylint: disable=no-member
             except (ReceivedErrorResponse, ReceivedNoResponse):
@@ -411,6 +422,9 @@ class Librarian():
         if not movieDirectory.endswith('/'):
             movieDirectory += '/'
         for host in self.hosts:
+            if not self.update_while_playing and host.inUse:
+                self.log.info('{} is currently playing a video. Skipping update.'.format(host.name))
+                continue
             try:
                 response = host.VideoLibrary.Scan(directory=movieDirectory)
             except (ReceivedErrorResponse, ReceivedNoResponse):
@@ -433,6 +447,9 @@ class Librarian():
         
         self.log.warning('All hosts failed to scan by directory. Initiating full library scan.')
         for host in self.hosts:
+            if not self.update_while_playing and host.inUse:
+                self.log.info('{} is currently playing a video. Skipping update.'.format(host.name))
+                continue
             try:
                 response = host.VideoLibrary.Scan()
             except (ReceivedErrorResponse, ReceivedNoResponse):
