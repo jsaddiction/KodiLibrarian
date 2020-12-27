@@ -1,3 +1,4 @@
 # KodiLibrarian
 Update your SQL backend driven Kodi Library
-test auto updates
+
+For more details please see the [WIKI](https://github.com/jsaddiction/KodiLibrarian/wiki)
