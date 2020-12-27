@@ -4,7 +4,7 @@
 # installDirectory: can not be a root directory default: /config/scripts/KodiLibrarian
 # PUID is the id of the user who will be calling this script. Uncomment and set to appropriate values if KodiLibrarian files have wrong uid set
 # PGID same as PUID but for group
-installDirectory="/scripts/KodiLibrarian"
+installDirectory="/config/scripts/KodiLibrarian"
 # ${PUID}=1234
 # #{PGID}=1234
 
