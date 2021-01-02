@@ -221,10 +221,14 @@ class Librarian():
         if not watchedState:
             return None
         
-        self.log.debug('Setting episode watched state to {}'.format(watchedState))
+        self.log.debug('Setting episode watched state to {} Host: {}'.format(watchedState, host.name))
 
         # Get what is currently in the library
         oldWatchedState = self._getEpisodeWatchedState(watchedState['episodeid'])
+
+        # check if we need a watched state change
+        if oldWatchedState == watchedState:
+            return True
 
         # Initiate the changes
         try:
@@ -565,6 +569,10 @@ class Librarian():
 
         # Get what is currently in the library
         oldWatchedState = self._getMovieWatchedState(watchedState['movieid'])
+
+        # Check if we need to set watched state
+        if oldWatchedState == watchedState:
+            return True
 
         # Initiate the changes
         try:
