@@ -144,7 +144,7 @@ class Librarian():
         # returns list of all episodes of a tvshow
         params = {
             'tvshowid': int(tvshowID),
-            'properties': ['file']
+            'properties': ['lastplayed', 'playcount', 'file', 'season', 'episode', 'tvshowid', 'showtitle']
         }
         for host in self.hosts:
             try:
@@ -156,6 +156,26 @@ class Librarian():
             if response and 'episodes' in response:
                 return response['episodes']
         return []
+
+    def _getTVShowDetails(self, tvshowID):
+        if not tvshowID:
+            return None
+        params = {
+            'tvshowid': tvshowID,
+            'properties': ['file']
+        }
+
+        for host in self.hosts:
+            try:
+                response = host.VideoLibrary.GetTVShowDetails(params)
+            except (ReceivedErrorResponse, ReceivedNoResponse) as e:
+                self.log.warning('Host: {} Failed to get TVShowDetails for tvshowid: {} Error: {}'.format(host.name, tvshowID, e))
+                continue
+
+            if response and 'tvshowdetails' in response:
+                return response['tvshowdetails']
+        
+        return None
 
     def _getEpisodeDetails(self, episodeID):
         if not episodeID:
@@ -176,14 +196,16 @@ class Librarian():
                 return response['episodedetails']
         return None
 
-    def _getEpisodeWatchedState(self, episodeID):
-        # returns object contianing watches status of an episode
-        if not episodeID:
+    def _getEpisodeWatchedState(self, episodeID=None, episodeDetails=None):
+        # returns object contianing watches status of an episode given either episodeid or episode details
+        if episodeID:
+            details = self._getEpisodeDetails(episodeID)
+        elif episodeDetails:
+            details = episodeDetails
+        else:
             return None
-        episodeDetails = self._getEpisodeDetails(episodeID)
-        if episodeDetails:
-            return {k:v for k, v in episodeDetails.items() if k in ['playcount', 'lastplayed', 'episodeid']}
-        return None
+        
+        return {k:v for k, v in details.items() if k in ['playcount', 'lastplayed', 'episodeid']}
 
     def _toggleEpisodeWatchedState(self, episodeID):
         # toggle watchedstate on each nonscanned host
@@ -209,10 +231,11 @@ class Librarian():
             response = host.VideoLibrary.SetEpisodeDetails(watchedState) # pylint: disable=no-member
         except (ReceivedErrorResponse, ReceivedNoResponse) as e:
             self.log.warning('Failed to set watched state watchedState: {} Error: {}'.format(watchedState, e))
+            response = None
 
         if not response == 'OK':
             self.log.warning('Incorrect response received from Host: {} Response: {}. Trying next host.'.format(host.name, response))
-            return
+            return False
 
         t = 0
         while t < self.TIMEOUT * 10:
@@ -221,43 +244,62 @@ class Librarian():
             newWatchedState = self._getEpisodeWatchedState(watchedState['episodeid'])
             if newWatchedState and not newWatchedState == oldWatchedState:
                 self.log.debug('Setting watched state complete. Took {}s'.format(t/10))
-                return
+                return True
+        
         self.log.warning('Host: {} Timed out after {}s while setting episode watched state. Trying next host.'.format(host.name, t/10))
+        return False
 
-    def _refreshEpisode(self, episodeID):
-        # Refresh given episode and return updated episodeID
-        self.log.debug('Refreshing episodeID: {}'.format(episodeID))
-        episodeDetails = self._getEpisodeDetails(episodeID)
+    def _removeEpisode(self, episodeID):
+        # Remove given episode and return true if success
+        self.log.debug('Removing episodeID: {}'.format(episodeID))
         params = {
             'episodeid': episodeID
         }
         for host in self.hosts:
-            if not self.update_while_playing and host.inUse:
-                self.log.info('{} is currently playing a video. Skipping update.'.format(host.name))
-                continue
             try:
-                response = host.VideoLibrary.RefreshEpisode(params) # pylint: disable=no-member
-            except (ReceivedErrorResponse, ReceivedNoResponse):
-                pass
-            
-            if not response == 'OK':
-                self.log.warning('Incorrect response received from Host: {} Response: {}. Trying next host.'.format(host.name, response))
-                continue
+                response = host.VideoLibrary.RemoveEpisode(params)
+            except (ReceivedErrorResponse, ReceivedNoResponse) as e:
+                response = None
 
-            t = 0
-            while t < self.TIMEOUT * 10:
-                time.sleep(0.1)
-                t += 1
-                newEpisodeID = self._getEpisodeID(episodeDetails['tvshowid'], episodeDetails['file'])
-                if newEpisodeID and not newEpisodeID == episodeID:
-                    self.log.debug('Refresh complete. New episodeID: {} Took {}s'.format(newEpisodeID, t/10))
-                    host.scanned = True
-                    return newEpisodeID
-            self.log.warning('Host: {} Timed out after {}s while refreshing episode. Trying next host.'.format(host.name, t/10))
+            if not response == 'OK':
+                self.log.warning('Host: {} Failed to remove episodeid: {} Error: {}'.format(host.name, episode['episodeid'], e))
+                continue
+            
+            return True
+
+    def _refreshEpisode(self, episodeID, episodePath):
+        # store watched state for later
+        # remove any episode that matches tvshowid, season, episode (may be more than one)
+        # initiate a scan on tvshow folder
+        # return new episodeID
+        self.log.debug('Refreshing episodeID: {}'.format(episodeID))
+
+        # Retain details of given episodeid
+        episodeDetails = self._getEpisodeDetails(episodeID)
+        tvShowDetails = self._getTVShowDetails(episodeDetails['tvshowid'])
+        watchedState = self._getEpisodeWatchedState(episodeDetails=episodeDetails)
+
+        # Get all episodes matching tvshowid, season, episode
+        episodeIDs = [episode['episodeid'] for episode in self._getEpisodes(episodeDetails['tvshowid']) if episode['season'] == episodeDetails['season'] and episode['episode'] == episodeDetails['episode']]
+
+        # remove all found episodes
+        for epID in episodeIDs:
+            self._removeEpisode(epID)
+
+        # Initiate scan of show directory
+        newEpisodeID = self._scanTVShowDirectory(tvShowDetails['file'], episodePath)
+
+        # Set previously collected watched state of new episode
+        watchedState['episodeid'] = newEpisodeID
+        for host in self.hosts:
+            if self._setEpisodeWatchedState(host, watchedState):
+                return newEpisodeID
+
+        return None
 
     def _scanTVShowDirectory(self, showDirectory, episodePath):
         # Scan tvshow directory and return new episodeID
-        self.log.debug('Scanning new episode {}'.format(episodePath))
+        self.log.debug('Scanning show directory {}'.format(showDirectory))
         showID = self._getTVShowID(showDirectory)
         for host in self.hosts:
             if not self.update_while_playing and host.inUse:
@@ -282,6 +324,7 @@ class Librarian():
                     self.log.debug('Scan complete. EpisodeID: {} Took {}s'.format(episodeID, t/10))
                     return episodeID
             self.log.warning('Host: {} Timed out after {}s while scanning show directory. Trying next host.'.format(host.name, t/10))
+        return None
 
     def _scanNewTVShow(self, showDirectory, episodePath):
         # Full library scan and return new episodeID
@@ -319,7 +362,7 @@ class Librarian():
         # Refresh or add this episode to the library
         if episodeID:
             # Episode and show exists. Refresh episode. Return updated episodeID.
-            episodeID = self._refreshEpisode(episodeID)
+            episodeID = self._refreshEpisode(episodeID, episodePath)
             notificationStr = 'Updated Episode '
         elif showID:
             # Show exists but not episode. Scaning show directory for new content. Return new episodeID.
