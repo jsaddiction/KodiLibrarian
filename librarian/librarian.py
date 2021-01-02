@@ -262,7 +262,7 @@ class Librarian():
                 response = None
 
             if not response == 'OK':
-                self.log.warning('Host: {} Failed to remove episodeid: {} Error: {}'.format(host.name, episode['episodeid'], e))
+                self.log.warning('Host: {} Failed to remove episodeid: {} Error: {}'.format(host.name, episodeID, e))
                 continue
             
             return True
@@ -427,38 +427,71 @@ class Librarian():
                 return response['moviedetails']
         return None
 
-    def _refreshMovie(self, movieID):
-        if not movieID:
-            return
-        movieDetails = self._getMovieDetails(movieID)
-        self.log.info('Refreshing "{}" ({})'.format(movieDetails['label'], movieDetails['year']))
+    def _getMovieIDs(self, title):
+        if not title:
+            return []
+
         params = {
-            'movieid': int(movieID)
+            'properties': ['file', 'lastplayed', 'playcount', 'year'],
+            'filter': {'operator': 'is', 'field': 'title', 'value': title}
         }
 
         for host in self.hosts:
-            if not self.update_while_playing and host.inUse:
-                self.log.info('{} is currently playing a video. Skipping update.'.format(host.name))
-                continue
             try:
-                response = host.VideoLibrary.RefreshMovie(params) # pylint: disable=no-member
-            except (ReceivedErrorResponse, ReceivedNoResponse):
-                pass
-            
+                response = host.VideoLibrary.GetMovies(params)
+            except (ReceivedErrorResponse, ReceivedNoResponse) as e:
+                self.log.warning('Host: {} Failed to get Movie list matching {} Error: {}'.format(host.name, title, e))
+                return []
+
+        if response and 'movies' in response:
+            return response['movies']
+
+    def _removeMovie(self, movieID):
+        self.log.debug('Removing movieID: {}'.format(movieID))
+        params = {
+            'movieid': movieID
+        }
+        for host in self.hosts:
+            try:
+                response = host.VideoLibrary.RemoveMovie(params)
+            except (ReceivedErrorResponse, ReceivedNoResponse) as e:
+                response = None
+
             if not response == 'OK':
-                self.log.warning('Incorrect response received from Host: {} Response: {}. Trying next host.'.format(host.name, response))
+                self.log.warning('Host: {} Failed to remove movieID: {} Error: {}'.format(host.name, movieID, e))
                 continue
 
-            t = 0
-            while t < self.TIMEOUT * 10:
-                time.sleep(0.1)
-                t += 1
-                newMovieID = self._getMovieID(movieDetails['label'], movieDetails['file'])
-                if newMovieID and not movieID == newMovieID:
-                    self.log.debug('Refresh complete. New movieID: {} Took {}s'.format(newMovieID, t/10))
-                    host.scanned = True
-                    return newMovieID
-            self.log.warning('Host: {} Timed out after {}s while refreshing movie. Trying next host.'.format(host.name, t/10))
+            return True
+
+    def _refreshMovie(self, movieID, movieDirectory):
+        # Save watched state of movie currently in library
+        # Remove movie currently in library
+        # Rescan that directory
+        # Set watched state of new movie to previously recorded value
+        # return the new movie id
+        self.log.info('Refreshing movieID: {}'.format(movieID))
+
+        # Save watched state and movie details of movie currently in library
+        movieDetails = self._getMovieDetails(movieID)
+        watchedState = self._getMovieWatchedState(movieDetails=movieDetails)
+        
+        # Get all movies matching title and directory
+        movieIDs = [mID for mID in self._getMovieIDs(movieID) if movieDirectory in mID['file']]
+
+        # Remove movie in the library (could be more than one instance of the same movie)
+        for mID in movieIDs:
+            self._removeMovie(mID)
+
+        # Rescan directory
+        newMovieID = self._scanNewMovie(movieDetails['label'], movieDirectory, movieDetails['file'])
+
+        # Set watched state
+        watchedState['movieid'] = newMovieID
+        for host in self.hosts:
+            if self._setMovieWatchedState(host, watchedState):
+                return newMovieID
+        
+        return None
 
     def _scanNewMovie(self, title, movieDirectory, moviePath):
         self.log.debug('Initiating directory scan for new movie. directory: "{}"'.format(movieDirectory))
@@ -514,13 +547,15 @@ class Librarian():
             self.log.warning('Host: {} Timed out after {}s while scanning new movie. Trying next host.'.format(host.name, t))
         self.log.warning('All hosts failed to scan "{}" {}. Aborting.'.format(title, moviePath))
 
-    def _getMovieWatchedState(self, movieID):
-        if not movieID:
+    def _getMovieWatchedState(self, movieID=None, movieDetails=None):
+        if movieID:
+            details = self._getMovieDetails(movieID)
+        elif movieDetails:
+            details = movieDetails
+        else:
             return None
-        movieDetails = self._getMovieDetails(movieID)
-        if movieDetails:
-            return {k:v for k, v in movieDetails.items() if k in ['playcount', 'lastplayed', 'movieid']}
-        return None
+        
+        return {k:v for k, v in details.items() if k in ['playcount', 'lastplayed', 'movieid']}
 
     def _setMovieWatchedState(self, host, watchedState):
         if not watchedState:
@@ -569,7 +604,7 @@ class Librarian():
             movieID = self._scanNewMovie(title, movieDirectory, moviePath)
             notificationStr = 'Added New Movie '
         else:
-            movieID = self._refreshMovie(movieID)
+            movieID = self._refreshMovie(movieID, movieDirectory)
             notificationStr = 'Updated Movie '
 
         # Toggle watched state on remaining hosts
