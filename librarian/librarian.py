@@ -480,7 +480,7 @@ class Librarian():
         watchedState = self._getMovieWatchedState(movieDetails=movieDetails)
         
         # Get all movies matching title and directory
-        movieIDs = [mID for mID in self._getMovieIDs(movieID) if movieDirectory in mID['file']]
+        movieIDs = [movie['movieid'] for movie in self._getMovieIDs(movieDetails['label']) if movieDirectory in movie['file']]
 
         # Remove movie in the library (could be more than one instance of the same movie)
         for mID in movieIDs:
