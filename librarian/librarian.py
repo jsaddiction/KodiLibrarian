@@ -135,8 +135,14 @@ class Librarian():
         if not tvshowID:
             return None
         episodes = self._getEpisodes(tvshowID)
+
+        # return episodeid if only one was found
+        if len(episodes) == 1:
+            return episodes[0]['episodeid']
+
+        # return episode id of anything in the list matches path excluding extension
         for episode in episodes:
-            if episode['file'] == episodePath:
+            if os.path.splitext(episode['file'])[0] == os.path.splitext(episodePath)[0]:
                 return episode['episodeid']
         return None
 
