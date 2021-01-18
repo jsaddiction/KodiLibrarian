@@ -406,6 +406,8 @@ class Librarian():
                 response = None
 
             if response and 'movies' in response:
+                if len(response['movies']) == 1:
+                    return response['movies'][0]['movieid']
                 for movie in response['movies']:
                     if movie['file'] == path:
                         return movie['movieid']
