@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import time
-
+import os
 from kodijsonrpc import KodiJSONClient
 from jsonrpcclient.exceptions import ReceivedErrorResponse, ReceivedNoResponse
 from utils import logger
@@ -408,8 +408,10 @@ class Librarian():
             if response and 'movies' in response:
                 if len(response['movies']) == 1:
                     return response['movies'][0]['movieid']
+
+                # if more than one movie was found parse through and pick one based on path ignoring extension
                 for movie in response['movies']:
-                    if movie['file'] == path:
+                    if os.path.splitext(movie['file'])[0] == os.path.splitext(path)[0]:
                         return movie['movieid']
         return None
 
