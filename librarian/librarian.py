@@ -182,7 +182,7 @@ class Librarian():
             return None
         params = {
             'episodeid': int(episodeID),
-            'properties': ['lastplayed', 'playcount', 'file', 'season', 'episode', 'tvshowid', 'showtitle']
+            'properties': ['lastplayed', 'playcount', 'file', 'season', 'episode', 'tvshowid', 'showtitle', 'dateadded']
         }
 
         for host in self.hosts:
@@ -205,7 +205,7 @@ class Librarian():
         else:
             return None
         
-        return {k:v for k, v in details.items() if k in ['playcount', 'lastplayed', 'episodeid']}
+        return {k:v for k, v in details.items() if k in ['playcount', 'lastplayed', 'episodeid', 'dateadded']}
 
     def _toggleEpisodeWatchedState(self, episodeID):
         # toggle watchedstate on each nonscanned host
@@ -417,7 +417,7 @@ class Librarian():
 
         params = {
             'movieid': int(movieID),
-            'properties': ['file', 'lastplayed', 'playcount', 'year']
+            'properties': ['file', 'lastplayed', 'playcount', 'year', 'dateadded']
         }
 
         for host in self.hosts:
@@ -559,7 +559,7 @@ class Librarian():
         else:
             return None
         
-        return {k:v for k, v in details.items() if k in ['playcount', 'lastplayed', 'movieid']}
+        return {k:v for k, v in details.items() if k in ['playcount', 'lastplayed', 'movieid', 'dateadded']}
 
     def _setMovieWatchedState(self, host, watchedState):
         if not watchedState:
