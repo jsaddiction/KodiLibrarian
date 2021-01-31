@@ -412,9 +412,6 @@ class Librarian():
                 response = None
 
             if response and 'movies' in response:
-                if len(response['movies']) == 1:
-                    return response['movies'][0]['movieid']
-
                 # if more than one movie was found parse through and pick one based on path ignoring extension
                 for movie in response['movies']:
                     if os.path.splitext(movie['file'])[0] == os.path.splitext(path)[0]:
